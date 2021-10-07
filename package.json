@@ -1,0 +1,27 @@
+{
+  "name": "boosted-charts",
+  "version": "1.0.0",
+  "description": "Visual analysis of boosted exports",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild ./ --bundle --outfile=dist.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flofriday/boosted-charts.git"
+  },
+  "author": "flofriday",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/flofriday/boosted-charts/issues"
+  },
+  "homepage": "https://github.com/flofriday/boosted-charts#readme",
+  "dependencies": {
+    "chart.js": "^3.5.1",
+    "esbuild": "^0.13.4"
+  },
+  "devDependencies": {
+    "typescript": "^4.4.3"
+  }
+}
