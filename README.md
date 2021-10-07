@@ -2,6 +2,8 @@
 
 Visual analysis of boosted exports
 
+[Live Demo](https://flofriday.github.io/boosted-charts/)
+
 ## About
 
 WIP, parsing is done but charts are still missing.
