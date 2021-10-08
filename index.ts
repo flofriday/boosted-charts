@@ -1,7 +1,10 @@
+import { Chart, registerables } from "chart.js";
+Chart.register(...registerables);
+
 /*
 React to file beeing hovered
 */
-const dropzone = document.getElementById("dropzone");
+const dropzone = document.getElementById("dropzone")!;
 dropzone.ondragenter = () => {
   dropzone.classList.add("drop");
 };
@@ -13,18 +16,18 @@ dropzone.ondragend = () => {
 };
 dropzone.ondragover = (event) => {
   event.preventDefault();
-  event.dataTransfer.dropEffect = "move";
+  event.dataTransfer!.dropEffect = "move";
 };
 dropzone.ondrop = (event) => {
   event.preventDefault();
   dropzone.classList.remove("drop");
 
-  if (event.dataTransfer.items.length != 1) {
+  if (event.dataTransfer!.items.length != 1) {
     alert("Drop only a single file");
     return;
   }
 
-  const file = event.dataTransfer.items[0].getAsFile();
+  const file = event.dataTransfer!.items[0].getAsFile()!;
   render(file);
 };
 
@@ -32,26 +35,38 @@ dropzone.ondrop = (event) => {
   Data processing
 */
 class Row {
-  project: string;
-  duration: number;
-  date: Date;
-
-  constructor(project: string, duration: number, date: Date) {
-    this.project = project;
-    this.duration = duration;
-    this.date = date;
-  }
+  constructor(
+    public project: string,
+    public duration: number,
+    public date: Date
+  ) {}
 }
 
-async function render(file: File) {
+async function render(file: File): Promise<void> {
   const text = await file.text();
   const rows = parse(text);
-  document.getElementById("dropzone").setAttribute("hidden", "");
-  document.getElementById("statistic").removeAttribute("hidden");
-  document.getElementById("avgTime").innerText = durationText(avgTime(rows));
-  document.getElementById("totalTime").innerText = durationText(
+  console.log(`Parsed ${rows.length} rows!`);
+  document.getElementById("dropzone")!.setAttribute("hidden", "");
+  document.getElementById("statistic")!.removeAttribute("hidden");
+  document.getElementById("avgTime")!.innerText = durationText(avgTime(rows));
+  document.getElementById("totalTime")!.innerText = durationText(
     totalTime(rows)
   );
+  renderList(accumulateProjects(rows));
+}
+
+function renderList(projects: ProjectRow[]) {
+  console.log(projects);
+  projects.forEach((p) => {
+    let tr = document.createElement("tr");
+    let td1 = document.createElement("td");
+    td1.innerText = p.project;
+    tr.appendChild(td1);
+    let td2 = document.createElement("td");
+    td2.innerText = durationText(p.duration);
+    tr.appendChild(td2);
+    document.getElementById("table")!.appendChild(tr);
+  });
 }
 
 /*
@@ -64,6 +79,28 @@ function totalTime(rows: Row[]): number {
 function avgTime(rows: Row[]): number {
   // TODO: We shouldn't asume that it is always the 7 day export.
   return totalTime(rows) / 7;
+}
+
+class ProjectRow {
+  constructor(public project: string, public duration: number) {}
+}
+
+function accumulateProjects(rows: Row[]): ProjectRow[] {
+  // TODO: this could be more immutable
+  let dict = new Map<string, number>();
+  rows.forEach((r) => {
+    if (!dict.has(r.project)) {
+      dict.set(r.project, r.duration);
+      return;
+    }
+    dict.set(r.project, dict.get(r.project)! + r.duration);
+  });
+
+  const res = Array.from(dict).map(
+    ([project, duration]) => new ProjectRow(project, duration)
+  );
+
+  return res.sort((a, b) => Number(a.duration < b.duration));
 }
 
 function durationText(seconds: number): string {
@@ -82,14 +119,14 @@ function parse(text: string): Row[] {
 }
 
 function parseLine(text: string): Row {
-  let name: string, dateText: string, durationText: string;
-  [name, , dateText, , , durationText] = text.split(",").map(removeQuotes);
+  const [name, , dateText, , , durationText] = text
+    .split(",")
+    .map(removeQuotes);
   return new Row(name, parseDuration(durationText), new Date(dateText));
 }
 
 function parseDuration(text: string): number {
-  let hour: number, minute: number, second: number;
-  [hour, minute, second] = text.split(":").map(Number);
+  const [hour, minute, second] = text.split(":").map(Number);
   return second + minute * 60 + hour * 60 * 60;
 }
 
