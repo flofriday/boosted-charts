@@ -14,6 +14,20 @@ body {
   color: var(--text);
 }
 
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 1;
+}
+
 #dropzone {
   height: calc(100vh - 6rem);
   box-sizing: border-box;

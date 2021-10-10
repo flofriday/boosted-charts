@@ -4,7 +4,7 @@
   "description": "Visual analysis of boosted exports",
   "main": "index.js",
   "scripts": {
-    "build": "tsc -noEmit && esbuild ./ --bundle --outfile=dist.js",
+    "build": "tsc -noEmit && esbuild ./ --bundle --minify --outfile=dist.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,7 +20,9 @@
   "dependencies": {
     "@types/offscreencanvas": "^2019.6.4",
     "chart.js": "^3.5.1",
-    "esbuild": "^0.13.4"
+    "chartjs-adapter-moment": "^1.0.0",
+    "esbuild": "^0.13.4",
+    "moment": "^2.29.1"
   },
   "devDependencies": {
     "typescript": "^4.4.3"

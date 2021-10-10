@@ -18,12 +18,21 @@
         <li>Total Time: <b id="totalTime">loading...</b></li>
       </ul>
 
-      <table id="table">
-        <tr>
-          <th>Project</th>
-          <th>Time</th>
-        </tr>
-      </table>
+      <div class="row">
+        <div class="column">
+          <table id="table">
+            <tr>
+              <th>Project</th>
+              <th>Time</th>
+            </tr>
+          </table>
+        </div>
+        <div class="column">
+          <canvas id="pieChart" width="400" height="400"></canvas>
+        </div>
+      </div>
+
+      <canvas id="dayChart" width="400" height="100"></canvas>
     </div>
     <script src="dist.js"></script>
   </body>

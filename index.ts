@@ -1,4 +1,5 @@
 import { Chart, registerables } from "chart.js";
+import "chartjs-adapter-moment";
 Chart.register(...registerables);
 
 /*
@@ -52,7 +53,14 @@ async function render(file: File): Promise<void> {
   document.getElementById("totalTime")!.innerText = durationText(
     totalTime(rows)
   );
-  renderList(accumulateProjects(rows));
+
+  const projectRows = accumulateProjects(rows);
+  renderList(projectRows);
+  renderPieChart(projectRows);
+
+  const dayRows = accumulateDays(rows);
+  console.log(dayRows);
+  renderDayChart(dayRows);
 }
 
 function renderList(projects: ProjectRow[]) {
@@ -69,6 +77,95 @@ function renderList(projects: ProjectRow[]) {
   });
 }
 
+function renderPieChart(projects: ProjectRow[]): void {
+  const total = projects.map((p) => p.duration).reduce((a, b) => a + b);
+  const data = projects.map((p) => Math.floor(100 * (p.duration / total)));
+  const labels = projects.map((p) => p.project);
+
+  const canvas: any = document.getElementById("pieChart")!;
+  let ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
+  new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Flotschi",
+          data: data,
+          backgroundColor: chartColors,
+          borderColor: chartBorderColors,
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      plugins: {
+        legend: {
+          position: "right",
+        },
+      },
+    },
+  });
+}
+
+function renderDayChart(rows: DateRow[]): void {
+  const data = rows.map((r) => {
+    return { x: r.date, y: r.duration / 60 };
+  });
+
+  const canvas: any = document.getElementById("dayChart")!;
+  let ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      datasets: [
+        {
+          label: "Days",
+          data: data,
+          backgroundColor: chartColors,
+          borderColor: chartBorderColors,
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      scales: {
+        x: {
+          type: "time",
+          time: {
+            unit: "day",
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          position: "right",
+        },
+      },
+    },
+  });
+}
+
+const chartColors = [
+  "rgba(255, 99, 132, 0.2)",
+  "rgba(255, 159, 64, 0.2)",
+  "rgba(255, 205, 86, 0.2)",
+  "rgba(75, 192, 192, 0.2)",
+  "rgba(54, 162, 235, 0.2)",
+  "rgba(153, 102, 255, 0.2)",
+  "rgba(201, 203, 207, 0.2)",
+];
+
+const chartBorderColors = [
+  "rgba(255, 99, 132)",
+  "rgba(255, 159, 64)",
+  "rgba(255, 205, 86)",
+  "rgba(75, 192, 192)",
+  "rgba(54, 162, 235)",
+  "rgba(153, 102, 25)",
+  "rgba(201, 203, 20)",
+];
+
 /*
   Analysis
 */
@@ -79,6 +176,19 @@ function totalTime(rows: Row[]): number {
 function avgTime(rows: Row[]): number {
   // TODO: We shouldn't asume that it is always the 7 day export.
   return totalTime(rows) / 7;
+}
+
+function dayName(n: number) {
+  const names = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+  return names[n];
 }
 
 class ProjectRow {
@@ -101,6 +211,28 @@ function accumulateProjects(rows: Row[]): ProjectRow[] {
   );
 
   return res.sort((a, b) => Number(a.duration < b.duration));
+}
+
+class DateRow {
+  constructor(public date: Date, public duration: number) {}
+}
+
+function accumulateDays(rows: Row[]): DateRow[] {
+  // TODO: this could be more immutable
+  let dict = new Map<number, number>();
+  rows.forEach((r) => {
+    if (!dict.has(r.date.getTime())) {
+      dict.set(r.date.getTime(), r.duration);
+      return;
+    }
+    dict.set(r.date.getTime(), dict.get(r.date.getTime())! + r.duration);
+  });
+
+  const res = Array.from(dict).map(
+    ([time, duration]) => new DateRow(new Date(time), duration)
+  );
+
+  return res.sort((a, b) => Number(a.date > b.date));
 }
 
 function durationText(seconds: number): string {
